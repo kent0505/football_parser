@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+aiosqlite
+pyjwt
+bcrypt
+python-multipart
+python-dotenv
+alembic
+aiohttp
+jinja2
+beautifulsoup4
+lxml
+aiogram
