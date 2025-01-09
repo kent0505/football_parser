@@ -59,13 +59,14 @@ async def get_player(pid: int):
     if player:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{player_url}{pid}/player/stats", headers=headers) as response:
+                logging.info(f"{player_url}{pid}/player/stats")
                 stats = {}
-                name = ""
-                position = ""
-                team = ""
-                number = ""
-                age = ""
-                height = ""
+                name = "?"
+                position = "?"
+                team = "?"
+                number = "0"
+                age = "0"
+                height = "0"
 
                 if response.status == 200:
                     html = await response.text()

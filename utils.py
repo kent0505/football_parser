@@ -9,7 +9,7 @@ goals_url:   str = base + "/match/_/gameId/"
 stats_url:   str = base + "/matchstats/_/gameId/"
 lineups_url: str = base + "/lineups/_/gameId/"
 player_url:  str = os.getenv("PLAYER", "")
-headers:     str = {"User-Agent": "Mozilla/5.0"}
+headers:     str = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"}
 
 def get_yesterday() -> str:
     date = datetime.now() - timedelta(days=1.5)

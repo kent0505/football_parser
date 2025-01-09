@@ -7,8 +7,11 @@ from database                import create_tables
 from routers.fixtures        import router as fixtures_router
 from routers.players         import router as players_router
 
+import logging
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logging.basicConfig(level=logging.INFO)
     await create_tables()
     yield
 
