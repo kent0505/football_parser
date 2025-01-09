@@ -55,11 +55,18 @@ async def get_players():
 
 @router.get("/player/{pid}")
 async def get_player(pid: int):
-    # player = await database.get_player(pid)
-    # if player:
+    player = await database.get_player(pid)
+    if player:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{player_url}{pid}/player/stats", headers=headers) as response:
                 stats = {}
+                name = ""
+                position = ""
+                team = ""
+                number = ""
+                age = ""
+                height = ""
+
                 if response.status == 200:
                     html = await response.text()
                     soup = BeautifulSoup(html, "lxml")
@@ -82,34 +89,31 @@ async def get_player(pid: int):
                                 value = div.find("span").get_text().strip()
                                 stats[title] = value
 
-                     
-                        # await database.edit_player(
-                        #     pid, 
-                        #     name, 
-                        #     position, 
-                        #     team, 
-                        #     number,
-                        # )
-
-                        return {
-                            "status": response.status,
-                            "player": {
-                                "name": name,
-                                "position": position,
-                                "team": team,
-                                "number": number,
-                                "age": age,
-                                "height": height,
-                                "yc": stats.get("Yellow cards", 0),
-                                "rc": stats.get("Red cards", 0),
-                                "fouls": stats.get("Fouls", 0),
-                                "shots": stats.get("Shots", 0),
-                                "goals": stats.get("Goals", 0),
-                                "passes": stats.get("Passes", 0),
-                                "tackles": stats.get("Tackles", 0),
-                            },
-                        }
+                        await database.edit_player(
+                            pid, 
+                            name, 
+                            position, 
+                            team, 
+                            number,
+                        )
                     except Exception as e:
                         logging.error(e)
-                raise HTTPException(response.status, "error")
-    # raise HTTPException(404, "player not found")
+                return {
+                    "status": response.status,
+                    "player": {
+                        "name": name,
+                        "position": position,
+                        "team": team,
+                        "number": number,
+                        "age": age,
+                        "height": height,
+                        "yc": stats.get("Yellow cards", "0"),
+                        "rc": stats.get("Red cards", "0"),
+                        "fouls": stats.get("Fouls", "0"),
+                        "shots": stats.get("Shots", "0"),
+                        "goals": stats.get("Goals", "0"),
+                        "passes": stats.get("Passes", "0"),
+                        "tackles": stats.get("Tackles", "0"),
+                    },
+                }
+    raise HTTPException(404, "player not found")
