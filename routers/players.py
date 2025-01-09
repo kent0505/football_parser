@@ -4,7 +4,7 @@ from bs4      import BeautifulSoup
 from utils    import *
 
 import database
-import aiohttp
+import httpx
 import logging
 
 router = APIRouter()
@@ -57,19 +57,17 @@ async def get_players():
 async def get_player(pid: int):
     player = await database.get_player(pid)
     if player:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{player_url}{pid}/player/stats", headers=headers) as response:
-                logging.info(f"{player_url}{pid}/player/stats")
-                stats = {}
-                name = "?"
-                position = "?"
-                team = "?"
-                number = "0"
-                age = "0"
-                height = "0"
+        async with httpx.AsyncClient() as client:
+        # async with aiohttp.ClientSession() as session:
+                url = f"{player_url}{pid}/player/stats"
+                response = await client.get(url, headers=headers)
+            # async with session.get(f"{player_url}{pid}/player/stats", headers=headers) as response:
 
-                if response.status == 200:
-                    html = await response.text()
+                stats = {}
+                name = ""; position = ""; team = ""; number = ""; age = ""; height = ""
+
+                if response.status_code == 200:
+                    html = response.text
                     soup = BeautifulSoup(html, "lxml")
                     try:
                         first_name = soup.find("div", class_="player-header__name-first").get_text(strip=True)
@@ -90,17 +88,11 @@ async def get_player(pid: int):
                                 value = div.find("span").get_text().strip()
                                 stats[title] = value
 
-                        await database.edit_player(
-                            pid, 
-                            name, 
-                            position, 
-                            team, 
-                            number,
-                        )
+                        await database.edit_player(pid, name, position, team, number)
                     except Exception as e:
                         logging.error(e)
                 return {
-                    "status": response.status,
+                    "status": response.status_code,
                     "player": {
                         "name": name,
                         "position": position,
