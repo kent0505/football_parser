@@ -23,7 +23,7 @@ app = FastAPI(
 app.add_middleware(
     middleware_class  = CORSMiddleware,
     allow_credentials = True,
-    allow_origins     = ["*"],
+    allow_origins     = ["https://kent0505-football-parser-06ea.twc1.net"],
     allow_methods     = ["*"],
     allow_headers     = ["*"],
 )
