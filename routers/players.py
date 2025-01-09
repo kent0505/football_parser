@@ -111,5 +111,6 @@ async def get_player(pid: int):
                         }
                     except Exception as e:
                         logging.error(e)
+                logging.error(response.text())
                 raise HTTPException(response.status, "error")
     raise HTTPException(404, "player not found")
