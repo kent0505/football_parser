@@ -64,7 +64,7 @@ async def get_player(pid: int):
                 try:
                     first_name = soup.find("div", class_="player-header__name-first").get_text(strip=True)
                     last_name = soup.find("div", class_="player-header__name-last").get_text(strip=True)
-                    name = f"{first_name} {last_name}"
+                    # name = f"{first_name} {last_name}"
                     number = soup.find("div", class_="player-header__player-number player-header__player-number--large").text.strip()
 
                     cols = soup.find("section", class_="player-overview__side-widget").find_all("div", class_="player-overview__col")
@@ -84,7 +84,7 @@ async def get_player(pid: int):
                     if player:
                         await database.edit_player(
                             pid, 
-                            name, 
+                            f"{first_name} {last_name}", 
                             position, 
                             team, 
                             number,
@@ -95,7 +95,7 @@ async def get_player(pid: int):
             return {
                 "status": response.status,
                 "player": {
-                    "name": name,
+                    "name": f"{first_name} {last_name}",
                     "position": position,
                     "team": team,
                     "number": number,
