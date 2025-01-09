@@ -43,6 +43,20 @@ async def add_player(
         )
         await db.commit()
 
+async def edit_player(
+    pid: int,
+    name: str, 
+    position: str,
+    team: str,
+    number: int,
+):
+    async with aiosqlite.connect(database) as db:
+        await db.execute(
+            "UPDATE players SET name = ?, position = ?, team = ?, number = ? WHERE pid = ?", 
+            (name, position, team, number, pid),
+        )
+        await db.commit()
+
 async def delete_player(pid: int):
     async with aiosqlite.connect(database) as db:
         await db.execute("DELETE FROM players WHERE pid = ?", (pid,))

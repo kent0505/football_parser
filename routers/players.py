@@ -4,7 +4,6 @@ from bs4      import BeautifulSoup
 from utils    import *
 
 import database
-
 import aiohttp
 import logging
 
@@ -39,7 +38,6 @@ async def delete_player(pid: int):
         return {"message": "player deleted"}
     raise HTTPException(404, "player not found")
 
-
 @router.get("/players")
 async def get_players():
     players = []
@@ -55,60 +53,63 @@ async def get_players():
         })
     return {"players": players}
 
-@router.get("/player/{id}")
-async def get_player(id: int):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{player_url}{id}/player/stats", headers=headers) as response:
-            if response.status == 200:
-                html = await response.text()
-                soup = BeautifulSoup(html, "lxml")
-                try:
-                    print(f"{player_url}{id}/player/stats")
-                    # print(html)
-                    # data = soup.find_all("tbody", class_="Table__TBODY")
-                    # for tbody in data:
-                    #     rows = tbody.find_all("tr", class_="Table__TR Table__TR--sm Table__even")
-                    #     for row in rows:
-                    #         stadium = row.find("td", class_="venue__col Table__TD")
-                    #         team1 = row.find("td", class_="events__col Table__TD")
-                    #         team2 = row.find("td", class_="colspan__col Table__TD")
-                    #         title1 = team1.find("span", class_="Table__Team away")
-                    #         title2 = team2.find("span", class_="Table__Team")
-                    #         logo1 = title1.find("a", class_="AnchorLink")
-                    #         logo2 = title2.find("a", class_="AnchorLink")
-                    #         score = team2.find("a", class_="AnchorLink at")
-                    #         id = extract_game_id(score.get("href"))
-                    #         if id:
-                    #             fixtures.append({
-                    #                 "id": id,
-                    #                 "score": score.text.strip(),
-                    #                 "stadium": stadium.text.strip(),
-                    #                 "home": {
-                    #                     "title": title1.text.strip(),
-                    #                     "logo": extract_id(logo1.get("href")),
-                    #                 },
-                    #                 "away": {
-                    #                     "title": title2.text.strip(),
-                    #                     "logo": extract_id(logo2.get("href")),
-                    #                 },
-                    #             })
-                except Exception as e:
-                    logging.error(e)
-            return {
-                "status": response.status,
-                "player": {
-                    "name": "Erling Haaland",
-                    "number": "Erling Haaland",
-                    "team": "Manchester City", 
-                    "position": "Forward",
-                    "age": "24", # overview section
-                    "height": "194cm", # overview section
-                    "yc": 8,
-                    "rc": 0,
-                    "fouls": 63,
-                    "shots": 325,
-                    "goals": 79,
-                    "passes": 1088,
-                    "tackles": 15,
-                },
-            }
+@router.get("/player/{pid}")
+async def get_player(pid: int):
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{player_url}{pid}/player/stats", headers=headers) as response:
+                stats = {}
+                if response.status == 200:
+                    html = await response.text()
+                    soup = BeautifulSoup(html, "lxml")
+                    try:
+                        first_name = soup.find("div", class_="player-header__name-first").get_text(strip=True)
+                        last_name = soup.find("div", class_="player-header__name-last").get_text(strip=True)
+                        name = f"{first_name} {last_name}"
+                        number = soup.find("div", class_="player-header__player-number player-header__player-number--large").text.strip()
+
+                        cols = soup.find("section", class_="player-overview__side-widget").find_all("div", class_="player-overview__col")
+                        age = cols[1].find("div", class_="player-overview__info").get_text(strip=True)
+                        height = cols[2].find("div", class_="player-overview__info").get_text(strip=True)
+                        team = cols[3].find("div", class_="player-overview__info").get_text(strip=True)
+                        position = cols[4].find("div", class_="player-overview__info").get_text(strip=True)
+
+                        ul = soup.find("ul", class_="player-stats__stats-wrapper")
+                        for li in ul.find_all("li", class_="player-stats__stat"):
+                            for div in li.find_all("div", class_="player-stats__stat-value"):
+                                title = div.find(text=True, recursive=False).strip()
+                                value = div.find("span").get_text().strip()
+                                stats[title] = value
+
+                        player = await database.get_player(pid)
+                        if player:
+                            await database.edit_player(
+                                pid, 
+                                name, 
+                                position, 
+                                team, 
+                                number,
+                            )
+
+                    except Exception as e:
+                        logging.error(e)
+                return {
+                    "status": response.status,
+                    "player": {
+                        "name": name,
+                        "position": position,
+                        "team": team,
+                        "number": number,
+                        "age": age,
+                        "height": height,
+                        "yc": stats.get("Yellow cards", 0),
+                        "rc": stats.get("Red cards", 0),
+                        "fouls": stats.get("Fouls", 0),
+                        "shots": stats.get("Shots", 0),
+                        "goals": stats.get("Goals", 0),
+                        "passes": stats.get("Passes", 0),
+                        "tackles": stats.get("Tackles", 0),
+                    },
+                }
+    except:
+        return {"message": "error"}
