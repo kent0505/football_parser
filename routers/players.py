@@ -55,8 +55,8 @@ async def get_players():
 
 @router.get("/player/{pid}")
 async def get_player(pid: int):
-    player = await database.get_player(pid)
-    if player:
+    # player = await database.get_player(pid)
+    # if player:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{player_url}{pid}/player/stats", headers=headers) as response:
                 stats = {}
@@ -83,13 +83,13 @@ async def get_player(pid: int):
                                 stats[title] = value
 
                      
-                        await database.edit_player(
-                            pid, 
-                            name, 
-                            position, 
-                            team, 
-                            number,
-                        )
+                        # await database.edit_player(
+                        #     pid, 
+                        #     name, 
+                        #     position, 
+                        #     team, 
+                        #     number,
+                        # )
 
                         return {
                             "status": response.status,
@@ -111,6 +111,5 @@ async def get_player(pid: int):
                         }
                     except Exception as e:
                         logging.error(e)
-                logging.error(response.text())
                 raise HTTPException(response.status, "error")
-    raise HTTPException(404, "player not found")
+    # raise HTTPException(404, "player not found")
