@@ -31,19 +31,22 @@ async def get_fixtures():
                             score = team2.find("a", class_="AnchorLink at")
                             id = extract_game_id(score.get("href"))
                             if id:
-                                fixtures.append({
-                                    "id": id,
-                                    "score": score.text.strip(),
-                                    "stadium": stadium.text.strip(),
-                                    "home": {
-                                        "title": title1.text.strip(),
-                                        "logo": extract_id(logo1.get("href")),
-                                    },
-                                    "away": {
-                                        "title": title2.text.strip(),
-                                        "logo": extract_id(logo2.get("href")),
-                                    },
-                                })
+                                if score.text.strip() == "v":
+                                    continue
+                                else:
+                                    fixtures.append({
+                                        "id": id,
+                                        "score": score.text.strip(),
+                                        "stadium": stadium.text.strip(),
+                                        "home": {
+                                            "title": title1.text.strip(),
+                                            "logo": extract_id(logo1.get("href")),
+                                        },
+                                        "away": {
+                                            "title": title2.text.strip(),
+                                            "logo": extract_id(logo2.get("href")),
+                                        },
+                                    })
                 except Exception as e:
                     logging.error(e)
             return {
@@ -62,19 +65,19 @@ async def get_goals(id: str):
                 html = await response.text()
                 soup = BeautifulSoup(html, "lxml")
                 try:
-                    divs = soup.find_all("div", class_="SoccerPerformers")
-                    for div in divs:
-                        uls = div.find_all("ul", class_="SoccerPerformers__Competitor__Info__GoalsList")
-                        for ul in uls:
-                            lis = ul.find_all("li", class_="SoccerPerformers__Competitor__Info__GoalsList__Item")
-                            for li in lis:
-                                player = li.find("strong", class_="Soccer__PlayerName").text.strip()
-                                time = li.find("span", class_="GoalScore__Time").text.strip().replace("- ", "").replace("'", "")
-                                if player and time:
-                                    goals.append({
-                                        "player": player,
-                                        "time": time,
-                                    })
+                    divs = soup.find("div", class_="SoccerPerformers")
+                    uls = divs.find_all("ul", class_="SoccerPerformers__Competitor__Info__GoalsList")
+                    for ul in uls:
+                        lis = ul.find_all("li", class_="SoccerPerformers__Competitor__Info__GoalsList__Item")
+                        for li in lis:
+                            player = li.find("strong", class_="Soccer__PlayerName").text.strip()
+                            time = li.find("span", class_="GoalScore__Time").text.strip().replace("- ", "").replace("'", "")
+                            if player and time:
+                                goals.append({
+                                    "player": player,
+                                    "time": time,
+                                })
+                        
                 except Exception as e:
                     logging.error(e)
             return {
